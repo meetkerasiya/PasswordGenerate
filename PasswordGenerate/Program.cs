@@ -9,11 +9,12 @@ namespace PassWordGenerate
 	class MyClass
 	{
 		
-		const int totalTask= 7;
-        const int total = 30000000;
+		const int totalTask= 100;
+        const int total = 3000000;
+
 		const int recordsPerTask = (total / totalTask);
 		const int leftoutRecords=(total % totalTask);
-		const string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=""C:\Users\Meet  Kerasiya\source\repos\PracticeSession2\PracticeSession2\Database1.mdf"";Integrated Security=True;Connect Timeout=30";
+		const string connectionString = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=""C:\Users\Meet  Kerasiya\source\repos\PasswordGenerate\PasswordGenerate\Database1.mdf"";Integrated Security=True";
 		static int completed = 0;
 		static Random random = new Random();
 
@@ -24,6 +25,7 @@ namespace PassWordGenerate
 			watch.Start();
 			DBConnect();
 			List<Task> tasks = new List<Task>();
+            Console.WriteLine("Password generation started");
 			for(int i=0;i<totalTask;i++)
 			{
 				Task t = AddDataToDB(recordsPerTask);
@@ -45,8 +47,20 @@ namespace PassWordGenerate
             }
 
             watch.Stop();
-            Console.WriteLine("Total time : " + (watch.ElapsedMilliseconds / 1000));
-            Console.WriteLine(leftoutRecords);
+            int seconds = (int)watch.ElapsedMilliseconds / 1000;
+            int minutes = seconds / 60;
+            seconds = seconds % 60;
+            if(minutes>0)
+            {
+                Console.WriteLine("Total time: " + minutes + " minutes and " + seconds + " seconds");
+            }
+            else
+            {
+                Console.WriteLine("Total time: "+seconds + " seconds");
+
+            }
+            //Console.WriteLine("Total time : " + (watch.ElapsedMilliseconds / 1000)+" seconds");
+            Console.ReadKey();
         }
 
         static void DBConnect()
@@ -80,11 +94,8 @@ namespace PassWordGenerate
 			for(int i=0;i<=recordsPerTask;i++)
 			{
 				
-				Console.WriteLine(completed);
-                if(completed>=total)
-                {
-                    break;
-                }
+				//Console.WriteLine(completed+1);
+               
 				password = GeneratePassword();
 				using(SqlCommand cmd=new SqlCommand(query,cnn))
 				{
@@ -92,10 +103,17 @@ namespace PassWordGenerate
 					try
 					{
 						completed++;
+                         
 						await cmd.ExecuteNonQueryAsync();
-					}
+                        if (completed >= total)
+                        {
+                            break;
+                        }
+                    }
 					catch (Exception ex)
 					{
+                        //Console.WriteLine("duplicate");
+                        completed--;
 						i--;
 					}
 				}
@@ -113,7 +131,7 @@ namespace PassWordGenerate
 
         private static string GeneratePassword()
         {
-		
+           
             int total_special = random.Next(2, 5);
             int total_number = random.Next(2, 5);
             int total_smalls = random.Next(2, 5);
